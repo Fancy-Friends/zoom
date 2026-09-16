@@ -1,0 +1,45 @@
+{
+  "$comment": "GET /users/me/token?type=onbehalf -- verified 2026-09-15 against Zoom's own Meeting SDK auth doc, its transition blog post, and independent third-party write-ups (Recall.ai, MeetStream), all agreeing on the shape. This CORRECTS the assumption this issue was filed under: the query value is `onbehalf`, never `obf` -- `type=obf` is not a value Zoom's docs use anywhere. Required since Zoom's own enforcement date (23 Feb 2026, not 2 Mar as one third-party source states -- Zoom's own blog is the one trusted here) for a Meeting SDK bot joining a meeting it did not create. The token is scoped to ONE meeting and cannot be reused across meetings, so `meetingId` is required on every mint rather than cached from a previous call.",
+  "operation": "obf_token_create",
+  "kind": "obf_token_create",
+  "title": "Mint on-behalf-of token",
+  "description": "Mint a short-lived token so a bot can join a Zoom meeting on the authorising user's behalf.",
+  "summary": "an on-behalf-of token",
+  "icon": "🔑",
+  "docs": "https://developers.zoom.us/blog/transition-to-obf-token-meetingsdk-apps/",
+
+  "sideEffects": "unsafe-to-replay",
+  "$idempotencyComment": "Zoom's own description calls this a short-lived, SINGLE-USE token. A retry mints a second one rather than returning the first -- harmless to mint twice, but never a call worth reusing a stored idempotency key for, which is why this is unsafe-to-replay rather than idempotent.",
+
+  "request": {
+    "method": "GET",
+    "path": "/users/me/token",
+    "encoding": "json",
+    "$pathComment": "`me` refers to the user whose OAuth access token is on the request -- the same account that authorised the app with user:read:token. Zoom's docs also show a userId path form; `me` is the one every reviewed source actually used and removes a way to ask for the wrong account's token by typing an id.",
+    "query": {
+      "type": "onbehalf"
+    }
+  },
+
+  "config": [
+    {
+      "type": "text",
+      "key": "meetingId",
+      "label": "Meeting ID",
+      "required": true,
+      "description": "The meeting the bot is about to join. The minted token works for this meeting only.",
+      "send": { "in": "query", "as": "meeting_id", "value": "string" }
+    }
+  ],
+
+  "defaultConfig": { "mode": "auto" },
+
+  "outputShape": [
+    { "path": "data.token", "type": "string", "description": "The OBF token. Present it the way the Meeting SDK's join call expects; it is not a Bearer header value on Zoom's REST API." }
+  ],
+
+  "contract": {
+    "sends": ["meeting_id"],
+    "reads": ["token"]
+  }
+}

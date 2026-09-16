@@ -1,0 +1,8 @@
+{
+  "$comment": "Zoom's OBF response is deliberately thin -- {\"token\": \"...\"} is the whole of it, per every source reviewed. A richer fixture would let an author wire a field Zoom never sends.",
+  "operation": "obf_token_create",
+
+  "response": {
+    "token": { "$fake": "id", "prefix": "obf" }
+  }
+}

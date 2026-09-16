@@ -1,0 +1,54 @@
+{
+  "$comment": "GET /meetings/{meetingId} -- Zoom's core meeting-details read, the one MOIC's meeting bot needs to resolve a join link and its settings before dialling in. The path, scope (meeting:read:meeting) and top-level fields below matched three independent sources checked 2026-09-15 (Zoom's own docs index, its developer forum, and its blog); Zoom's detail page for this exact operation would not render for automated review, so the field list is the long-stable v2 shape rather than a byte-for-byte transcription of today's schema -- spot-check with a live call before this reaches a real account, and `npm run drift` will say if the shape has moved once a spec snapshot exists.",
+  "operation": "meeting_get",
+  "kind": "meeting_get",
+  "title": "Get meeting",
+  "description": "Read a Zoom meeting's join details and settings.",
+  "summary": "a Zoom meeting",
+  "icon": "🎥",
+  "docs": "https://developers.zoom.us/docs/api/meetings/",
+
+  "sideEffects": "none",
+
+  "request": {
+    "method": "GET",
+    "path": "/meetings/{meetingId}",
+    "encoding": "json"
+  },
+
+  "config": [
+    {
+      "type": "text",
+      "key": "meetingId",
+      "label": "Meeting ID",
+      "required": true,
+      "description": "The meeting's numeric id, from its join URL or from Zoom's own meeting list.",
+      "send": { "in": "path", "as": "meetingId", "value": "string" }
+    }
+  ],
+
+  "defaultConfig": { "mode": "auto" },
+
+  "outputShape": [
+    { "path": "data.id", "type": "number", "description": "The meeting's numeric id (also called the meeting number)." },
+    { "path": "data.uuid", "type": "string", "description": "A unique id for THIS instance of a recurring meeting; the meeting id alone is shared across occurrences." },
+    { "path": "data.host_id", "type": "string", "description": "The Zoom user id of the meeting's host." },
+    { "path": "data.topic", "type": "string", "description": "The meeting's title." },
+    { "path": "data.type", "type": "number", "description": "Zoom's numeric meeting type: 1 instant, 2 scheduled, 3 recurring with no fixed time, 8 recurring with a fixed time." },
+    { "path": "data.status", "type": "string", "description": "waiting, started, or finished." },
+    { "path": "data.start_time", "type": "string", "description": "ISO 8601 with a Z offset, e.g. 2026-09-15T14:00:00Z." },
+    { "path": "data.duration", "type": "number", "description": "Scheduled length, in minutes." },
+    { "path": "data.timezone", "type": "string", "description": "An IANA zone Zoom uses to render start_time in its own UI, e.g. America/New_York." },
+    { "path": "data.agenda", "type": "string", "description": "The meeting's description, when the host set one." },
+    { "path": "data.join_url", "type": "string", "description": "The link a participant (or a meeting bot) uses to join." },
+    { "path": "data.password", "type": "string", "description": "The passcode required to join, when the meeting has one." },
+    { "path": "data.settings.waiting_room", "type": "boolean", "description": "Whether Zoom holds joiners in a waiting room before admitting them -- a bot must be admitted like any guest." },
+    { "path": "data.settings.join_before_host", "type": "boolean", "description": "Whether a participant may join before the host has started the meeting." },
+    { "path": "data.settings.approval_type", "type": "number", "description": "0 automatically approve, 1 manually approve, 2 no registration required." }
+  ],
+
+  "contract": {
+    "sends": [],
+    "reads": ["id", "uuid", "host_id", "topic", "type", "status", "start_time", "duration", "timezone", "agenda", "join_url", "password", "settings"]
+  }
+}

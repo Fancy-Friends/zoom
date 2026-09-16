@@ -1,0 +1,24 @@
+{
+  "$comment": "A scheduled meeting as Zoom's stable v2 shape returns one. The id echoes the meetingId that was asked for, cast to a number -- Zoom's own ids are numeric even though every URL and config field carries them as digit strings, and a faker that returned a different id than the one requested would let a flow wire {{ $json.data.id }} against the wrong meeting.",
+  "operation": "meeting_get",
+
+  "response": {
+    "id": { "$config": "meetingId", "as": "integer", "fallback": { "$fake": "digits", "length": 10 } },
+    "uuid": { "$fake": "uuid" },
+    "host_id": { "$fake": "id", "prefix": "u" },
+    "topic": "Weekly sync",
+    "type": 2,
+    "status": "waiting",
+    "start_time": "2026-09-22T14:00:00Z",
+    "duration": 30,
+    "timezone": "America/New_York",
+    "agenda": "",
+    "join_url": "https://zoom.us/j/1234567890?pwd=fake",
+    "password": { "$fake": "digits", "length": 6 },
+    "settings": {
+      "waiting_room": true,
+      "join_before_host": false,
+      "approval_type": 2
+    }
+  }
+}

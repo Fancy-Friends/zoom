@@ -1,0 +1,75 @@
+{
+  "$comment": "THE hand-written part. Four packages -- ui, js, php, py -- are generated from this directory and are never edited. Fix this file, then regenerate.",
+
+  "connectorApi": 1,
+
+  "service": "zoom",
+  "title": "Zoom",
+  "domain": "messaging",
+  "docs": "https://developers.zoom.us/docs/api/",
+
+  "auth": "oauth2",
+  "requires": ["accessToken"],
+  "$requiresComment": "Only the access token is presented to api.zoom.us. The client pair and the refresh token belong to the host's OAuth lifecycle, not to an ordinary REST request.",
+
+  "authorize": {
+    "kind": "bearer",
+    "credential": "accessToken",
+    "$comment": "Every Zoom REST call is a Bearer token on the Authorization header, OAuth or Server-to-Server alike; this provider declares the user OAuth shape so a host can connect a rep's own Zoom account rather than one shared app-wide identity."
+  },
+
+  "oauth": {
+    "flow": "authorization_code",
+    "authorizeUrl": "https://zoom.us/oauth/authorize",
+    "tokenUrl": "https://zoom.us/oauth/token",
+    "scopes": ["meeting:read:meeting", "user:read:token"],
+    "accessTokenCredential": "accessToken",
+    "refreshTokenCredential": "refreshToken",
+    "refreshTokenRotates": true,
+    "$refreshTokenRotates": "Verified 2026-09-15 against Zoom's own OAuth guide: \"You should always use the latest refresh token for the next refresh request\" -- a new refresh token is issued on every refresh, and Zoom's docs describe reuse of an old one as an error condition rather than a supported retry path. Refresh tokens themselves last 90 days; access tokens one hour.",
+    "accessTokenTtlSeconds": 3600,
+    "$scopeComment": "meeting:read:meeting is what meeting_get needs. user:read:token is what obf_token_create needs -- Zoom's own OBF guide: \"Accessing a user's OBF token requires the user:read:token scope.\" Neither action works without its scope; a host that only asked for one gets a 4xx on the other, not a silent gap.",
+    "$comment": "Authorization Code, confidential client. Zoom's PKCE guidance (\"Use PKCE to enable user authorization with a public client ID and no client secret\") frames it as the PUBLIC-client path; nothing in Zoom's docs requires it of a confidential app that also sends client_secret, unlike Buffer -- so pkce is deliberately not declared here rather than claimed on a guess."
+  },
+
+  "sandbox": "unverified",
+  "$sandboxComment": "UNVERIFIED, not NONE. Zoom documents no separate developer/test estate distinct from a real account -- every OAuth app authorizes against the caller's own live Zoom account, and there is no sandbox toggle in the docs reviewed 2026-09-15. That reads like `none`, but nobody has confirmed there is truly nothing rather than simply not having found it, so the honest value is `unverified` until someone checks directly with a Zoom account.",
+  "sandboxNote": "Zoom has no test estate distinct from a real account, as far as this review found (2026-09-15) -- but it is UNVERIFIED, not confirmed. Every call authorizes against the caller's own Zoom account and can read real meeting data. Use fake mode while building.",
+
+  "baseUrls": {
+    "live": "https://api.zoom.us/v2"
+  },
+
+  "encoding": "json",
+
+  "credentialFields": [
+    {
+      "key": "clientId",
+      "label": "OAuth client ID",
+      "scope": "provider",
+      "secret": false,
+      "help": "From the Zoom app you registered at marketplace.zoom.us. One value for the whole installation -- the same app serves every connected Zoom account."
+    },
+    {
+      "key": "clientSecret",
+      "label": "OAuth client secret",
+      "scope": "provider",
+      "secret": true,
+      "help": "From the same app. Used to exchange the code and to refresh; never sent with an API request."
+    },
+    {
+      "key": "accessToken",
+      "label": "Access token",
+      "scope": "account",
+      "secret": true,
+      "help": "Obtained by the host's OAuth exchange, PER CONNECTED ZOOM ACCOUNT. Expires after one hour -- a host that does not refresh will work for a while and then fail with no warning."
+    },
+    {
+      "key": "refreshToken",
+      "label": "Refresh token",
+      "scope": "account",
+      "secret": true,
+      "help": "Also per account. A NEW one is issued on every refresh -- persist the replacement atomically, and never retry a refresh that may have already succeeded: replaying an old refresh token is Zoom's own reported failure mode for a rotating grant."
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+# GENERATED FILE — do not edit.
+#
+# Emitted from provider/actions/ by weaver's generator.
+# A hand-edit here is destroyed by the next protocol sync, which is worse than
+# being rejected, because it works until it silently does not. Fix
+# provider/actions/ (or weaver's template/) and regenerate:
+#
+# npm run provider -- zoom
+
+from .meeting_get import meeting_get
+from .obf_token_create import obf_token_create
+
+__all__ = [
+    "meeting_get",
+    "obf_token_create",
+]
