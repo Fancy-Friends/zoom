@@ -20,12 +20,12 @@ return [
 
     'credentials' => [
         // OAuth client ID (one per installation).
-        'clientId' => env('ZOOM_CLIENTID'),
+        'clientId' => env('ZOOM_CLIENT_ID', env('ZOOM_CLIENTID')),
         // OAuth client secret (one per installation, secret).
-        'clientSecret' => env('ZOOM_CLIENTSECRET'),
+        'clientSecret' => env('ZOOM_CLIENT_SECRET', env('ZOOM_CLIENTSECRET')),
         // Access token (per connected account, secret).
-        'accessToken' => env('ZOOM_ACCESSTOKEN'),
+        'accessToken' => env('ZOOM_ACCESS_TOKEN', env('ZOOM_ACCESSTOKEN')),
         // Refresh token (per connected account, secret).
-        'refreshToken' => env('ZOOM_REFRESHTOKEN'),
+        'refreshToken' => env('ZOOM_REFRESH_TOKEN', env('ZOOM_REFRESHTOKEN')),
     ],
 ];
